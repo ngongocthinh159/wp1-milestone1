@@ -21,19 +21,24 @@ ACS712 sensor(ACS712_05B, CURRENT_DT_PIN); // ASC712 current sensor constructor
 const int MAX_P_WIDTH = 2000;
 const int MIN_P_WIDTH = 1000;
 const float CALIBRATION_FACTOR = 430.56;
+const float MAX_MOTOR_POWER_CONSUMPTION = 150; // Corresponding to 150 (W), according to the data sheet of A2212/13T
 
 // Global variables
-const int serialPrintInterval = 0; // Increase value to slow down serial print activity
+const int serialPrintInterval = 40; // Increase value to slow down serial print activity
 float motorUsage = 0; // Percentage of motor usage
 unsigned long t = 0; // Time from start the microcontroller
 int potValue = 0;  // Value from the analog pin of potentiometer
 float currentValue = 0; // Value of current in amp (A)
 float voltageValue = 0; // Value of voltage in vol (V)
+float powerValue = 0;
+float loadCellValue = 0; // Value of load cell (g)
+static int tt = 0; // Time variable for serial update interval
 
 // Function declaration
 void initializeLoadcell();
 float getCurrentValue();
 void waitUntilReceive(char c);
+char readSerial();
 
 void setup() {
   Serial.begin(9600);
@@ -83,6 +88,7 @@ void setup() {
 }
 
 void loop() {
+  char inByte = readSerial();
   static boolean newDataReady = 0;
   
   // Check for loadcell data
@@ -97,28 +103,35 @@ void loop() {
   if (newDataReady) {
     if (millis() > t + serialPrintInterval) {
       // Get loadcell value from HX711 sensor
-      float i = LoadCell.getData();
+      loadCellValue = LoadCell.getData();
       newDataReady = 0;
       t = millis();
-
-      // Get voltage value from voltage sensor
-      voltageValue = getVoltageValue();
-
-      // Get current value from current sensor
-      currentValue = getCurrentValue();
-      
-      // Motor usage percentage
-      motorUsage = (float) (potValue - MIN_P_WIDTH) / (MAX_P_WIDTH - MIN_P_WIDTH) * 100;
-
-      // Print values
-      Serial.printf("Loadcell: %.2f g\n", i);
-      Serial.printf("Motor usage: %.2f%% \n", motorUsage);
-      Serial.printf("Current: %.2f A\n", currentValue);
-      Serial.printf("Voltage: %.2f V\n", voltageValue);
-      Serial.printf("Power: %.2f W\n", currentValue*voltageValue);
-      Serial.printf("Time: %d\n", millis());
-      Serial.printf("\r\n");
     }
+  }
+
+  if (millis() > (unsigned int)tt + serialPrintInterval) {
+    // Get voltage value from voltage sensor
+    voltageValue = getVoltageValue();
+
+    // Get current value from current sensor
+    currentValue = getCurrentValue();
+
+    // Power value
+    powerValue = voltageValue*currentValue;
+    
+    // Motor usage percentage
+    motorUsage = (float) (powerValue/MAX_MOTOR_POWER_CONSUMPTION*100);
+
+    // Print values
+    Serial.printf("Loadcell: %.2f g\n", loadCellValue);
+    Serial.printf("Motor usage: %.2f%%\n", motorUsage);
+    Serial.printf("Current: %.2f A\n", currentValue);
+    Serial.printf("Voltage: %.2f V\n", voltageValue);
+    Serial.printf("Power: %.2f W\n", powerValue);
+    Serial.printf("Time: %d\n", millis());
+    Serial.printf("\r\n");
+
+    tt = millis();
   }
 }
 
@@ -157,5 +170,11 @@ void waitUntilReceive(char c) {
           _resume = true;
         }
     }
+  }
+}
+
+char readSerial() {
+  if (Serial.available() > 0) {
+    return Serial.read();
   }
 }

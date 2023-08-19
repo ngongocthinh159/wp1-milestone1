@@ -14,7 +14,7 @@ float R1 = 30000.0;
 float R2 = 7500.0; 
 
 // Float for Reference Voltage
-float ref_voltage = 3.335;
+float ref_voltage = 3.3;
 
 // Integer for ADC value
 int adc_value = 0;
@@ -27,7 +27,7 @@ void calibrateVoltageSensor() {
   initializeVoltageSensor();
 
   // Read the Analog Input
-  int x = 300;
+  int x = 100;
   float sum = 0, avgSum;
   for (int i = 0; i < x; i++) {
     adc_value = analogRead(VOLTAGE_DT_PIN);
@@ -40,7 +40,7 @@ void calibrateVoltageSensor() {
 
 float getVoltageValue() {
   // Read the Analog Input
-  int x = 20;
+  int x = 50;
   float sum = 0, avgSum;
   for (int i = 0; i < x; i++) {
     adc_value = analogRead(VOLTAGE_DT_PIN);

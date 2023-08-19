@@ -30,6 +30,8 @@ set(gcf, "OuterPosition", [0, screen_property(4)/2, ...
     screen_property(3)/2, screen_property(4)/2])
 xlabel("Time (s)");
 
+drawnowc
+
 % Start the serial COM reading and animation
 % Break the loop with Ctrl+C
 while 1
@@ -47,7 +49,7 @@ while 1
         continue;
     end
     disp(string)
-    data = sscanf(string, "Loadcell: %f g\nMotor usage: %f%% \nCurrent: %f A\nVoltage: %f V\nPower: %f W\nTime: %d\n");
+    data = sscanf(string, "Loadcell: %f g\nMotor usage: %f%%\nCurrent: %f A\nVoltage: %f V\nPower: %f W\nTime: %f\n");
     %make sure the data is correct i.e. 6 outputs is extracted from string
     if (size(data) < 6) 
         continue;
@@ -62,13 +64,14 @@ while 1
     %set xlim to move our graph horizontally
     xlim([max(0, time/1000 - 10), time/1000 + 10]);
     %set ylim to resize our graph upward
-    ylim([-5, min(250, round(power/40)*40 + 40)])
+    ylim([-5, min(250, round(loadcell/40)*40 + 40)])
     
     %add points to the corresponding lines
     addpoints(h1, time/1000, loadcell)
     addpoints(h2, time/1000, power)
-    % writematrix([loadcell time/1000],'loadcell.xls','WriteMode','append')
-    drawnow
+
+    % Comment the next row to stop data write into an excel file
+    %writematrix([loadcell power voltage current time/1000],'loadcell_powerconsumption.xlsx','WriteMode','append')
 end
 
 % Command Window KeyPressFcn callback functions
