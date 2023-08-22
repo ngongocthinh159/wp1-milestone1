@@ -46,6 +46,7 @@ void setup() {
   delay(2000);
   while(!Serial) {};
 
+  Serial.println("");
   Serial.println("----- Welcome to the program -----");
   Serial.println("===> Disconnect power source, make source no current flow through the circuit");
   Serial.println("===> Send 's' to the serial...");
@@ -72,6 +73,7 @@ void setup() {
   Serial.println("");
   
   // ESC calibration
+  Serial.println("===> Rotate the potentiometer to zero position (rotate counter clockwise until can not)");
   Serial.println("===> Turn on power source, then send 's' to the serial");
   waitUntilReceive('s');
   Serial.println("Calibrate the ESC...");
@@ -83,7 +85,7 @@ void setup() {
   Serial.println("");
 
   // Wait signal to start the motor
-  Serial.println("===> Send 's' to the serial and rotate the motor to control the motor");
+  Serial.println("===> Send 's' to the serial and now rotate the potentiometer to control the motor!");
   waitUntilReceive('s');
 }
 
@@ -91,7 +93,7 @@ void loop() {
   char inByte = readSerial();
   static boolean newDataReady = 0;
   
-  // Check for loadcell data
+  // Check for load cell data
   if (LoadCell.update()) newDataReady = true;
   
   // Change the speed of the motor with the potentiometer value
